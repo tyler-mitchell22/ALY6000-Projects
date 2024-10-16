@@ -1,0 +1,62 @@
+library(pacman)
+p_load(tidyverse)
+p_load(janitor)
+p_load(lubridate)
+
+books <- read_csv("books.csv")
+
+books <- clean_names(books)
+
+books <- books |> mutate(first_publish_date = mdy(first_publish_date))
+
+books <- books |> mutate(year = year(first_publish_date))
+
+books <- books |> filter(year >= 1990, year <= 2020) |> 
+  select(-publish_date, -edition, -characters, -price, -genres, setting, -isbn)
+
+books <- books |> filter(pages < 700)
+
+books <- drop_na(books)
+
+glimpse(books)
+
+summary(books)
+
+books |> ggplot() +
+  geom_histogram(mapping = aes(x = rating), fill = "red", binwidth = 0.25) +
+  labs(x = "Rating", y = "Number of Books", title = "Histogram of Book Ratings")
+
+books |> ggplot() +
+  geom_boxplot(mapping = aes(x = pages), fill = "red") +
+  labs(x = "Pages", title = "Boxplot With Page Counts")
+
+by_year <- books |> group_by(year) |> 
+  summarize(total_books = n())
+
+by_year |> ggplot(mapping = aes(x = year, y = total_books)) +
+  geom_line() +
+  geom_point() +
+  labs(x = "", y = "", title = "Total Number of Books Rated Per Year")
+
+book_publisher <- books |> group_by(publisher) |> 
+  summarize(book_count = n()) |> 
+  filter(book_count > 125) |> 
+  arrange(desc(book_count)) |> 
+  mutate(cum_counts = cumsum(book_count))
+
+book_publisher <- book_publisher |> mutate(rel_freq = book_count / sum(book_count))
+
+book_publisher
+
+book_publisher <- book_publisher |> mutate(publisher = factor(publisher, levels = publisher))
+
+book_publisher |> ggplot(mapping = aes(x = publisher)) +
+  geom_col(mapping = aes(x = publisher, y = book_count), fill = "cyan") +
+  geom_line(mapping = aes(y = cum_counts, group = 1)) +
+  geom_point(mapping = aes(y = cum_counts)) +
+  labs(x = "Publisher", y = "Number of Books", title = "Book Counts (1990 - 2020)") +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+
+books |> ggplot(mapping = aes(x = rating, y = pages)) +
+  geom_point() +
+  labs(x = "Rating", y = "Number of Pages", title = "Book Rating vs. Book Length")
