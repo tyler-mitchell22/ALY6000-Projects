@@ -1,0 +1,84 @@
+library(pacman)
+
+p_load(janitor)
+p_load(tidyverse)
+
+skaters <- read_csv("skaters.csv") |> clean_names() |> drop_na()
+
+skaters <- skaters |> filter(situation == "all") |> 
+  select(name, team, position, games_played, i_f_primary_assists, 
+         i_f_secondary_assists, i_f_goals, i_f_points, penality_minutes, 
+         penality_minutes_drawn) 
+
+# found rename() on https://dplyr.tidyverse.org/reference/rename.html
+skaters <- skaters |> rename(primary_assists = i_f_primary_assists, 
+                  secondary_assists = i_f_secondary_assists, 
+                  goals = i_f_goals, total_points = i_f_points, 
+                  penalty_minutes_taken = penality_minutes)
+
+skaters
+
+# 1. Playing in a minimum of 50% of games during the season (41 games), 
+#    who were the top 5-10 players in point per game production?
+
+# 2. Which teams had the highest sum of points among their entire roster? 
+#    Which teams had the lowest sums?
+
+# 3. Which players were the biggest detriment to their team in respect to penalty 
+#    minutes taken, versus penalty minutes drawn? 
+#    Which teams were also the worst in this respect?
+
+# question 1
+Q1_skaters <- skaters |> select(name, total_points, games_played) |> 
+  filter(games_played >= 41) |> 
+  mutate(ppg = total_points / games_played) |> 
+  arrange(desc(ppg)) |> 
+  slice(1:6)
+
+# question 2
+Q2_skaters <- skaters |> group_by(team) |> 
+  summarise(team_total = sum(total_points)) |> 
+  arrange(desc(team_total)) |> 
+  slice(1:6)
+
+Q2_skaters_2 <- skaters |> group_by(team) |> 
+  summarise(total = sum(total_points)) |> 
+  arrange(total) |> 
+  slice(1:6)
+
+# question 3 individual
+Q3I_skaters <- skaters |> select(name, team, penalty_minutes_taken, penality_minutes_drawn) |> 
+  mutate(penalty_spread = penalty_minutes_taken - penality_minutes_drawn) |> 
+  arrange(desc(penalty_spread)) |> 
+  slice(1:8)
+
+# q.3 team 
+Q3T_skaters <- skaters |> group_by(team) |> 
+  summarise(penalty_total_spread = 
+              sum(penalty_minutes_taken) - sum(penality_minutes_drawn)) |> 
+  arrange(desc(penalty_total_spread)) |> 
+  slice(1:8)
+
+Q1_skaters |> ggplot() +
+  geom_line(mapping = aes(x = name, y = ppg, group = 1)) +
+  geom_point(mapping = aes(x = name, y = ppg)) +
+  labs(x = "Player Name", y = "Points Per Game", title = "Point Per Game Leaders") +
+  theme_light()
+
+
+Q2_skaters |> ggplot() +
+  geom_col(mapping = aes(x = team, y = team_total)) +
+  labs(x = "Team", y = "Total Player Points", title = "Highest Team Point Totals")
+
+Q2_skaters_2 |> ggplot() +
+  geom_col(mapping = aes(x = team, y = total)) +
+  labs(x = "Team", y = "Total Player Points", title = "Lowest Team Point Totals")
+
+Q3I_skaters |> ggplot() +
+  geom_col(mapping = aes(x = name, y = penalty_spread), fill = "dark blue") +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
+  labs(x = "Player Name", y = "Spread", title = "Penalties Taken vs. Penalties Drawn (mins)")
+
+Q3T_skaters |> ggplot() +
+  geom_col(mapping = aes(x = team, y = penalty_total_spread), fill = "dark red") +
+  labs(x = "Team", y = "Spread", title = "Penalties Taken vs. Penalties Drawn (mins)")
