@@ -1,0 +1,49 @@
+library(tidyverse)
+library(janitor)
+
+data_2015 <- read_csv("2015.csv")
+
+head(data_2015)
+
+names(data_2015)
+
+# view(data_2015)
+
+glimpse(data_2015)
+
+happy_df <- data_2015 |> select(Country, Region, `Happiness Score`, Freedom)
+
+top_ten_df <- happy_df |> slice(1:10)
+
+no_freedom_df <- happy_df |> filter(Freedom < .20)
+
+best_freedom_df <- happy_df |> arrange(desc(Freedom))
+
+data_2015 |> mutate(gff_stat = sum(Family, Freedom, Generosity))
+
+happy_df |> group_by(Region) |> 
+  summarize(country_count = n(), mean_happiness = mean(`Happiness Score`), mean_freedom = mean(Freedom))
+
+
+
+baseball <- read_csv("baseball.csv") |> filter(AB > 0) |> mutate(BA = H / AB) |> mutate(OBP = (H + BB) / (AB + BB))
+
+strikeout_artist <- baseball |> arrange(desc(SO))
+
+head(strikeout_artist)
+
+eligible_df <- baseball |> filter(AB >= 300 | G >= 100)
+
+ggplot(eligible_df, aes(x = BA)) +
+  geom_histogram(fill = "black")
+
+eligible_df |> arrange(desc(H))       
+eligible_df |> arrange(desc(HR))
+eligible_df |> arrange(desc(BA))
+eligible_df |> arrange(desc(OBP))
+eligible_df |> arrange(desc(RBI))
+
+MVP <- eligible_df |> filter(Last == 'Mattingly', First == 'Don')
+MVP
+
+eligible_df |> arrange(desc(G))
