@@ -1,0 +1,132 @@
+library(pacman)
+
+p_load(tidyverse)
+p_load(janitor)
+
+
+balldata <- read_csv("ball-dataset.csv")
+
+freq_color <- balldata |> group_by(color) |> summarise(total = n())
+
+freq_label <- balldata |> group_by(label) |> summarise(total = n())
+
+green_ball <- balldata |> filter(color == "green") |> summarize(green = n()) |> pull()
+
+red_ball <- balldata |> filter(color == "red") |> summarize(red = n()) |> pull()
+
+blue_ball <- balldata |> filter(color == "blue") |> summarize(blue = n()) |> pull()
+
+yellow_ball <- balldata |> filter(color == "yellow") |> summarize(blue = n()) |> pull()
+
+total_balls <- sum(green_ball, red_ball, blue_ball, yellow_ball)
+
+letter_b <- balldata |> filter(label == "B") |> summarize(b_letter = n()) |> pull()
+
+total_balls
+
+freq_color |> ggplot(mapping = aes(x = color, y = total)) +
+  geom_col() +
+  labs(x = "Color", y = "Count", title = "Color Counts of Balls")
+
+freq_label |> ggplot(mapping = aes(x = label, y = total)) +
+  geom_col() +
+  labs(x = "Label", y = "Count", title = "Label Counts of Balls")
+
+prob6_result <- freq_color |> mutate(prob_green = total / sum(total)) |> 
+  filter(color == "green") |> 
+  pull()
+
+prob7_result <- freq_color |> mutate(prob_blue_red = total / sum(total)) |> 
+  filter(color == "blue" | color == "red") |> 
+  summarise(prob_blue_red = sum(prob_blue_red)) |> pull()
+
+prob8_result <- freq_label |> mutate(prob_A_C = total / sum(total)) |> 
+  filter(label == "A" | label == "C") |> 
+  summarise(prob_A_C = sum(prob_A_C)) |> pull()
+
+prob9_result <- balldata |> group_by(color, label) |> summarise(total = n()) |> 
+  ungroup() |> 
+  mutate(yellow_d = total / sum(total)) |> 
+  filter(color == "yellow", label == "D") |> 
+  pull()
+
+prob10_result <- balldata |> group_by(label, color) |> summarise(total = n()) |> ungroup() |> 
+  mutate(probs = total / sum(total)) |> 
+  filter(color == "yellow" | label == "D") |> 
+  summarise(yellow_or_d = sum(probs)) |> pull()
+
+prob11_result <- (blue_ball / total_balls) * (red_ball / (total_balls - 1))
+
+prob12_result <- green_ball / total_balls * green_ball / (total_balls - 1) *
+green_ball / (total_balls - 2) * green_ball / (total_balls - 3)
+
+prob13_result <- (red_ball / total_balls) * (letter_b / total_balls)
+
+my_factorial <- factorial(5)
+
+# Used https://www.w3schools.com/r/r_data_frames.asp
+# for this as I was unable to figure it out
+coin_outcomes <- data.frame(first = c("H", "H", "H", "H", "H", "H", "H", "H", "T", "T", "T", "T", "T", "T", "T", "T"),
+second = c("H", "H", "H", "H", "T", "T", "T", "T", "H", "H", "H", "H", "T", "T", "T", "T"),
+third = c("H", "H", "T", "T", "H", "H", "T", "T", "H", "H", "T", "T", "H", "H", "T", "T"),
+fourth = c("H", "T", "H", "T", "H", "T", "H", "T", "H", "T", "H", "T", "H", "T", "H", "T"))
+
+coin_outcomes <- coin_outcomes |> mutate(results = 1 / 16)
+
+# Used https://stackoverflow.com/questions/32618583/counting-number-of-instances-of-a-condition-per-row-r
+coin_outcomes <-coin_outcomes |> 
+  mutate(num_heads = rowSums(coin_outcomes == "H"))
+
+num_heads_prob <- coin_outcomes |> group_by(num_heads) |> summarise(total = n()) |> 
+  mutate(num_head_prob = total / sum(total))
+
+num_heads_prob
+
+prob18_result <- num_heads_prob |> filter(num_heads == 3) |> select(num_head_prob) |> pull()
+
+two_heads <- num_heads_prob |> filter(num_heads == 2) |> select(num_head_prob) |> pull()
+
+four_heads <- num_heads_prob |> filter(num_heads == 4) |> select(num_head_prob) |> pull()
+
+prob19_result <- two_heads + four_heads
+
+prob20_result <- num_heads_prob |> filter(num_heads <= 3) |> 
+  summarise(three_heads = sum(num_head_prob)) |> 
+  pull()
+
+num_heads_prob |> ggplot(mapping = aes(x = num_heads, y = num_head_prob)) +
+  geom_col() +
+  labs(x = "Number of Heads", y = "Probability", 
+       title = "Probability Distribution of Heads for 4 Flips")
+
+home_win <- 0.75
+
+home_loss <- 0.25
+
+away_win <- 0.5
+
+away_loss <- 0.5
+
+prob22_result <- home_win ^ 5 * away_win ^ 5
+
+p_zero <- (home_loss ^ 5) * (away_loss ^ 5)
+
+# Rechecked one_home and one_away with AI
+# to make sure I was computing properly
+one_home <- (5 * home_win * home_loss ^ 4) * (away_loss ^ 5)
+
+one_away <- (home_loss ^ 5) * (5 * away_win * away_loss ^ 4)
+
+one_win_prob <- one_home + one_away
+
+zero_or_one <- p_zero + one_win_prob
+
+prob23_result <- 1 - zero_or_one
+
+three_home <- (factorial(5)) / (factorial(3) * factorial(5-3))
+
+two_away <- (factorial(5)) / (factorial(2) * factorial(5-2))
+
+prob24_result <- three_home * two_away
+
+
