@@ -1,0 +1,110 @@
+library(pacman)
+p_load(tidyverse)
+p_load(palmerspenguins)
+
+
+# The probability of winning a game is .65 and an outcome is the number of
+# wins during those seven games
+
+prob1_result <- dbinom(5, 7, prob = .65)
+
+probabilities <- dbinom(0:7, 7, prob = .65)
+
+num_wins <- 0:7
+
+df <- data.frame(num_wins, probabilities)
+
+prob2_result <- df |> 
+  rename(wins = num_wins, probability = probabilities)
+
+prob2_result
+
+prob3_result <- pbinom(5, 7, prob = .65)
+
+prob4_result <- pbinom(5, 7, prob = .65) - pbinom(2, 7, prob = .65)
+
+prob5_result <- 1 - pbinom(4, 7, prob = .65)
+
+games <- 7
+
+prob <- 0.65
+
+prob6_result <- games * prob
+
+prob7_result <- games * prob * (1 - prob)
+
+set.seed(10)
+thousand <- rbinom(1000, 7, 0.65)
+
+prob9_result <- mean(thousand)
+
+prob10_result <- var(thousand)
+
+
+# The number of calls received each hour at a call center follows a Poisson 
+# distribution averaging seven calls per employee per hour
+
+prob11_reuslt <- dpois(6, 7)
+
+# 8 hour average is 7 * 8 = 56
+prob12_result <- ppois(40, 56)
+
+# 5 employees = 35/h * 8 = 280
+prob13_result <- 1 - ppois(275, 280)
+
+# 4 employees = 28/h * 8 = 224
+prob14_result <- 1 - ppois(275, 224)
+
+prob15_result <- qpois(.90, 56)
+
+set.seed(15)
+calls <- rpois(1000, 56)
+
+prob17_result <- mean(calls)
+
+prob18_result <- var(calls)
+
+# The life spans of light bulbs at a certain manufacturing company follow a 
+# normal distribution, with a mean life span of 2,000 hours 
+# and a standard deviation of 100 hours
+
+prob19_result <- pnorm(2200, mean = 2000, sd = 100) - pnorm(1800, mean = 2000, sd = 100)
+
+prob20_result <- 1 - pnorm(2500, mean = 2000, sd = 100)
+
+prob21_result <- round(qnorm(.10, mean = 2000, sd = 100))
+
+set.seed(25)
+
+lightbulbs <- rnorm(10000, mean = 2000, sd = 100)
+
+prob23_result <- mean(lightbulbs)
+
+prob24_result <- sqrt(var(lightbulbs))
+
+set.seed(1)
+
+prob25_result <- replicate(1000,  mean(rnorm(10000, mean = 2000, sd = 100)))
+
+hist(prob25_result)
+
+prob27_result <- mean(prob25_result)
+
+# Palmers Penguins
+penguins
+
+penguin_data <- penguins
+
+penguin_data |> filter(species == "Adelie") |> 
+  ggplot(mapping = aes(x = flipper_length_mm)) +
+  geom_histogram()
+
+# appears to have normal distribution
+
+penguin_data |> filter(species == "Gentoo") |> 
+  ggplot(mapping = aes(x = flipper_length_mm, y = bill_depth_mm)) +
+  geom_point()
+
+# positive correlation of flipper length to beak depth
+
+t.test(cars$mpg, mu = 23, alternative =  "less")
